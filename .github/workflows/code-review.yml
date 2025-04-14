@@ -81,7 +81,8 @@ jobs:
         id: analyze
         run: |
           # Get all C# files that were modified in this PR
-          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.cs)
+          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.cs$')
+
           
           # Initialize tracking variables
           ISSUES_FOUND=false
