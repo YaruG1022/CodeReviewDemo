@@ -15,18 +15,36 @@ By completing this exercise, you will learn:
 
 ### Getting Started
 
+> Below we are just getting things set up. We have provided prewritten code that is supposed to mimic code you just wrote.
+
 1. Fork this repository to your own GitHub account
-2. Clone your forked repository to your local machine
-3. Create a new branch from main (e.g., `git checkout -b my-code-review`)
-4. Review the code in `src/CodeReviewTraining/OrderProcessor.cs`
+2. Click **Branches** and then **New Branch**
+3. Name your new branch something unique BUT MEMORABLE like your name, initials, etc.
+4. Once created, click on your new branch name
+5. Review the code in `src/CodeReviewTraining/OrderProcessor.cs`
+6. Remove the commend at the top of the file. ONLY this comment, nothing else yet.
+7. Click **Commit changes...** once the comment has been removed.
+
+### Now we are ready to start
+
+> In this scenario, you just wrote `OrderProcessor.cs` and your team is about to perform a code review on it.
 
 ### Step 1: Submit Your Initial PR
 
+> You think your code is ready so you create a PR (Pull Request)
+> It is called "Pull Request" because it is from the perspective of the software maintainer, and you are asking them to pull your code into their code.
+
 1. Without making any changes yet, create a pull request from your branch to the main repository
-2. The GitHub Action will run and leave feedback about the failing tests
-3. Review the test failure details
+   - Click **Pull requests** from the top
+   - There should be a yellow banner with the option to **Compare & pull request**, click it!
+2. This screen shows you the diff of all the code in this PR.
+3. Click the green button **Create pull request**
+3. The GitHub Action will run and leave feedback about the failing tests
+4. Review the test failure details
 
 ### Step 2: Make the Tests Pass
+
+> After 
 
 1. Look for the code sections marked with `STEP 1` comments in `OrderProcessor.cs`
 2. Uncomment the necessary code sections to make the tests pass:
