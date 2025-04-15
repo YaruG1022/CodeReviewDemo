@@ -1,7 +1,7 @@
 name: Post PR Comments
 on:
   workflow_run:
-    workflows: ["Code Review PR Training"]
+    workflows: ["Code Review Training"]
     types:
       - completed
 
