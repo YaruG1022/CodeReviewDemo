@@ -1,0 +1,46 @@
+name: Post PR Comments
+on:
+  workflow_run:
+    workflows: ["PR Code Review"]
+    types:
+      - completed
+
+jobs:
+  pr-comment:
+    runs-on: ubuntu-latest
+    # These permissions are needed to post comments
+    permissions:
+      pull-requests: write
+      issues: write
+      contents: read
+    
+    steps:
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: ${{ github.event.workflow_run.workflow_id }}
+          run_id: ${{ github.event.workflow_run.id }}
+          name: pr_message
+          path: artifacts
+      
+      - name: Find PR number
+        id: find_pr
+        run: |
+          echo "Looking for PR number in workflow run ${{ github.event.workflow_run.id }}"
+          PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH" || echo "")
+          if [ -z "$PR_NUMBER" ]; then
+            # If we can't find it directly, try to extract from the head branch
+            HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
+            PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/pulls?state=open&head=sha:$HEAD_SHA")
+            PR_NUMBER=$(echo "$PR_DATA" | jq '.[0].number')
+          fi
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "Found PR number: $PR_NUMBER"
+      
+      - name: Post or update comment
+        if: steps.find_pr.outputs.pr_number
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          number: ${{ steps.find_pr.outputs.pr_number }}
+          path: artifacts/pr_comment.md
+          recreate: true
