@@ -4,7 +4,6 @@ on:
     workflows: ["Code Review Training"]
     types:
       - completed
-
 jobs:
   pr-comment:
     runs-on: ubuntu-latest
@@ -27,18 +26,45 @@ jobs:
         id: find_pr
         run: |
           echo "Looking for PR number in workflow run ${{ github.event.workflow_run.id }}"
-          PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH" || echo "")
-          if [ -z "$PR_NUMBER" ]; then
-            # If we can't find it directly, try to extract from the head branch
-            HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
-            PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/pulls?state=open&head=sha:$HEAD_SHA")
-            PR_NUMBER=$(echo "$PR_DATA" | jq '.[0].number')
+          
+          # Extract the PR number from the source workflow
+          # We need to get details about the original workflow run
+          RUN_INFO=$(curl -s -H "Authorization: token ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}")
+          
+          # Extract the head branch name
+          HEAD_BRANCH=$(echo "$RUN_INFO" | jq -r '.head_branch')
+          HEAD_SHA=$(echo "$RUN_INFO" | jq -r '.head_sha')
+          
+          echo "Head branch: $HEAD_BRANCH"
+          echo "Head SHA: $HEAD_SHA"
+          
+          # Find PRs associated with this branch
+          PR_DATA=$(curl -s -H "Authorization: token ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls?state=open&head=${{ github.repository_owner }}:$HEAD_BRANCH")
+          
+          # Extract the first PR number (if any)
+          PR_NUMBER=$(echo "$PR_DATA" | jq '.[0].number')
+          
+          # If no PR found, try looking for closed PRs that match the SHA
+          if [ "$PR_NUMBER" = "null" ]; then
+            echo "No open PR found for branch. Checking by commit SHA..."
+            PR_DATA=$(curl -s -H "Authorization: token ${{ github.token }}" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls?state=all")
+            
+            PR_NUMBER=$(echo "$PR_DATA" | jq --arg sha "$HEAD_SHA" '.[] | select(.head.sha==$sha) | .number' | head -1)
           fi
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          echo "Found PR number: $PR_NUMBER"
+          
+          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
+            echo "ERROR: Could not find PR number"
+            echo "pr_number=" >> $GITHUB_OUTPUT
+          else
+            echo "Found PR number: $PR_NUMBER"
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          fi
       
       - name: Post or update comment
-        if: steps.find_pr.outputs.pr_number
+        if: steps.find_pr.outputs.pr_number != ''
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           number: ${{ steps.find_pr.outputs.pr_number }}
