@@ -1,13 +1,13 @@
-name: Post PR Comments
+name: Post PR Review
 on:
   workflow_run:
     workflows: ["Code Review Training"]
     types:
       - completed
 jobs:
-  pr-comment:
+  post-review:
     runs-on: ubuntu-latest
-    # These permissions are needed to post comments
+    # These permissions are needed to post comments and create reviews
     permissions:
       pull-requests: write
       issues: write
@@ -63,10 +63,33 @@ jobs:
             echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
           fi
       
+      # Post a comment with the full review details
       - name: Post or update comment
         if: steps.find_pr.outputs.pr_number != ''
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           number: ${{ steps.find_pr.outputs.pr_number }}
-          path: artifacts/pr_comment.md
+          path: artifacts/review_message.md
           recreate: true
+      
+      # Create an actual PR review with REQUEST_CHANGES or APPROVE status
+      - name: Create PR review
+        if: steps.find_pr.outputs.pr_number != ''
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            // Read review data from artifacts
+            const reviewType = fs.readFileSync('artifacts/review_type.txt', 'utf8').trim();
+            const reviewBody = fs.readFileSync('artifacts/review_body.txt', 'utf8').trim();
+            
+            // Create a review
+            await github.rest.pulls.createReview({
+              pull_number: ${{ steps.find_pr.outputs.pr_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: reviewBody,
+              event: reviewType
+            });

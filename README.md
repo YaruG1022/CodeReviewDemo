@@ -1,29 +1,18 @@
-# Code Review Training Exercise
+# Code Review Exercise
 
-Welcome to the Code Review Training Exercise! This hands-on exercise will help you learn the code review process by experiencing it firsthand through a guided GitHub workflow.
-
-## Learning Objectives
-
-By completing this exercise, you will learn:
-
-1. How to identify and fix common code issues
-2. The difference between functional correctness and code quality
-3. How to respond to code review feedback
-4. Best practices for C# development
+Welcome to the Code Review Exercise! This hands-on exercise will help you learn the code review process by experiencing it firsthand through a guided GitHub workflow.
 
 ## Instructions
 
 ### Getting Started
 
-> Below we are just getting things set up. We have provided prewritten code that is supposed to mimic code you just wrote.
+> Below we are just getting things set up.
 
-1. Fork this repository to your own GitHub account
-2. Click **Branches** and then **New Branch**
-3. Name your new branch something unique BUT MEMORABLE like your name, initials, etc.
-4. Once created, click on your new branch name
-5. Review the code in `src/CodeReviewTraining/OrderProcessor.cs`
-6. Remove the commend at the top of the file. ONLY this comment, nothing else yet.
-7. Click **Commit changes...** once the comment has been removed.
+1. In the top right click **Fork** (not forks in the About section)
+2. Click **Create Fork**
+3. Review the code in `src/CodeReviewTraining/OrderProcessor.cs`
+4. Using the online code editor, remove the commend at the top of the file. ONLY this comment, nothing else yet.
+5. Click **Commit changes...**
 
 ### Now we are ready to start
 
@@ -32,42 +21,47 @@ By completing this exercise, you will learn:
 ### Step 1: Submit Your Initial PR
 
 > You think your code is ready so you create a PR (Pull Request)
-> It is called "Pull Request" because it is from the perspective of the software maintainer, and you are asking them to pull your code into their code.
 
-1. Without making any changes yet, create a pull request from your branch to the main repository
-   - Click **Pull requests** from the top
-   - There should be a yellow banner with the option to **Compare & pull request**, click it!
-2. This screen shows you the diff of all the code in this PR.
-3. Click the green button **Create pull request**
-3. The GitHub Action will run and leave feedback about the failing tests
-4. Review the test failure details
+Without making any changes yet, create a pull request from your branch to the main repository
+1. Click **Pull requests** from the top
+2. Click **New Pull Request**
+3. Click **Create pull request**
+> Now this is where you give your PR a good name and strong description.
+4. This screen shows you the diff of all the code in this PR.
+5. Click the green button **Create pull request**
+6. RIGHT HERE: Leave this page open, where it says _"from..."_ open that in a new tab.
+7. Go back to the first tab and click **Checks**
+8. The GitHub Action will run and leave feedback about the failing tests
+9. Review the test failure details
 
-### Step 2: Make the Tests Pass
+### Step 2: Fixing So Tests Pass
 
-> After 
+> After you made your PR, you noticed your code isn't passing all the tests. Before bugging your team to review the code, lets get the tests passing.
 
-1. Look for the code sections marked with `STEP 1` comments in `OrderProcessor.cs`
-2. Uncomment the necessary code sections to make the tests pass:
-   - Null checks
-   - Input validation
-   - Exception handling
-3. Commit and push your changes to update the PR
-4. Wait for the GitHub Action to run again
+1. Go back to the second tab (step 6 in previous)
+2. Navigate to `src/CodeReviewTraining/OrderProcessor.cs`
+3. Remove the commented out code that is causing the tests to fail. **ONLY REMOVE STEP 1, DON'T TOUCH STEP 2 YET"
+    - Don't just comment these out and move on, look at the reasoning why
+4. Once fixed, click **Commit changes...**
+5. Navigate back to the PR tab. You should see this new commit on there and the tests start to run again.
+    - If you don't see the new commit, make sure you are on the _**Conversation**_ tab
 
 ### Step 3: Address Code Quality Issues
 
-1. Once the tests are passing, the GitHub Action will perform a code review
-2. It will identify code quality issues that still need to be fixed
-3. Look for the code sections marked with `STEP 2` comments in `OrderProcessor.cs`
-4. Uncomment the necessary code sections to address each code quality issue:
-   - Documentation
-   - Logging
-5. Commit and push your changes to update the PR again
+> Your tests are now passing but you need to address your code quality comments from your team. To view their comments look at the _**Files changed**_ tab
+
+1. Go back to the second tab
+2. Navigate to `src/CodeReviewTraining/OrderProcessor.cs`
+3. Remove ALL the commented out code
+    - Don't just comment these out and move on, look at the reasoning why
+4. Once fixed, click **Commit changes...**
+5. Navigate back to the PR tab. You should see this new commit on there and the tests start to run again.
+    - If you don't see the new commit, make sure you are on the _**Conversation**_ tab
 
 ### Step 4: Get PR Approval
 
-1. Once all code quality issues are fixed, the GitHub Action will automatically approve your PR
-2. Review the final feedback and reflect on what you've learned
+> Now your code is ready for a PR! All your tests are passing and your team thinks the code is maintainable.
+
 
 ## Code Review Checklist
 
