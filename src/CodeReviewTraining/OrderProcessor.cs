@@ -88,8 +88,6 @@ namespace CodeReviewTraining
             // Uncomment for LOGGING issue
             /*
             _logger.LogInformation("Processing order for customer {CustomerId}", orderRequest.CustomerId);
-            
-            _logger.LogInformation("Order {OrderId} processed successfully", order.OrderId);
             */
         }
 
