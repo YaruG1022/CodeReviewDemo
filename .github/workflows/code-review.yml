@@ -47,7 +47,7 @@ jobs:
       
       # Upload the test results as an artifact
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: test-results.txt
@@ -57,7 +57,7 @@ jobs:
         if: steps.test.outputs.test_passed == 'false'
         run: |
           mkdir -p artifacts
-          cat > artifacts/review_message.md << 'EOL'
+          cat > artifacts/review_message.md << EOL
           # ❌ Unit Tests Failed
 
           The unit tests for this PR are failing. Before we can review the code quality, you need to make the tests pass.
@@ -75,7 +75,7 @@ jobs:
           
       - name: Upload failing test message
         if: steps.test.outputs.test_passed == 'false'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pr_message
           path: artifacts/
@@ -105,7 +105,7 @@ jobs:
           mkdir -p artifacts
           
           # Get all C# files that were modified in this PR
-          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.cs)
+          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.cs')
 
           # Initialize tracking variables
           ISSUES_FOUND=false
@@ -131,10 +131,11 @@ jobs:
               ISSUES_FOUND=true
             fi
             
-            # Check for XML documentation
-            if grep -q "//\s*/// <summary>" "$FILE"; then
+            # NEW: Look for specific marker phrases
+            if grep -q "Uncomment for DOCUMENTATION issue" "$FILE"; then
               MISSING_DOCUMENTATION=true
               ISSUES_FOUND=true
+              echo "Found DOCUMENTATION issue marker"
             fi
             
             # Check for exception handling
@@ -143,12 +144,46 @@ jobs:
               ISSUES_FOUND=true
             fi
             
-            # Check for logging
-            if grep -q "//\s*_logger\.Log" "$FILE" || grep -q "//\s*Console\.Write" "$FILE"; then
+            # NEW: Look for specific marker phrases
+            if grep -q "Uncomment for LOGGING issue" "$FILE"; then
               MISSING_LOGGING=true
               ISSUES_FOUND=true
+              echo "Found LOGGING issue marker"
+            fi
+            
+            # NEW: Check for block comments containing logger statements
+            if grep -qP "/\\*[\\s\\S]*?_logger\\.Log[\\s\\S]*?\\*/" "$FILE"; then
+              MISSING_LOGGING=true
+              ISSUES_FOUND=true
+              echo "Found block commented logger statements"
+            fi
+            
+            # NEW: Check for block comments containing documentation
+            if grep -qP "/\\*[\\s\\S]*?/// <summary>[\\s\\S]*?\\*/" "$FILE"; then
+              MISSING_DOCUMENTATION=true
+              ISSUES_FOUND=true
+              echo "Found block commented documentation"
+            fi
+            
+            # SPECIAL CHECK: Test if STEP 2 exists with its indicators
+            if grep -q "STEP 2: AFTER TESTS PASS" "$FILE"; then
+              echo "Found STEP 2 marker - checking if any STEP 2 code is still commented"
+              # Look for block comments after STEP 2 marker
+              grep -A 30 "STEP 2: AFTER TESTS PASS" "$FILE" > step2_section.txt
+              if grep -q "/\*" step2_section.txt; then
+                echo "Found block comments in STEP 2 section"
+                MISSING_LOGGING=true
+                MISSING_DOCUMENTATION=true
+                ISSUES_FOUND=true
+              fi
             fi
           done
+          
+          # Debug - print final issue status for verification
+          echo "Final status:"
+          echo "ISSUES_FOUND=$ISSUES_FOUND"
+          echo "MISSING_LOGGING=$MISSING_LOGGING"
+          echo "MISSING_DOCUMENTATION=$MISSING_DOCUMENTATION"
           
           # Save the issues found status to a file
           echo "ISSUES_FOUND=$ISSUES_FOUND" > artifacts/analysis_results.txt
@@ -160,12 +195,11 @@ jobs:
           
           # Create the PR comment content for issue cases
           if [ "$ISSUES_FOUND" == "true" ]; then
-            cat > artifacts/review_message.md << 'EOL'
-            ## Code Review Results
+            cat > artifacts/review_message.md << EOL
+          ## Code Review Results
 
-            🔍 **Code Quality Issues Found:**
-
-            EOL
+          🔍 **Code Quality Issues Found:**
+          EOL
             
             if [ "$MISSING_NULL_CHECKS" == "true" ]; then
               echo "- ❌ **Missing Null Checks**: The code is missing important null checks. Look for commented lines with null checks and uncomment them." >> artifacts/review_message.md
@@ -196,11 +230,11 @@ jobs:
             echo "REQUEST_CHANGES" > artifacts/review_type.txt
           else
             # Create the PR comment for success cases
-            cat > artifacts/review_message.md << 'EOL'
-            ## Code Review Results
+            cat > artifacts/review_message.md << EOL
+          ## Code Review Results
 
-            🎉 **Great job!** All tests are passing and code quality standards have been met.
-            EOL
+          🎉 **Great job!** All tests are passing and code quality standards have been met.
+          EOL
             
             # Create the PR review body for success
             echo "All code quality standards have been met. Great job!" > artifacts/review_body.txt
@@ -211,7 +245,7 @@ jobs:
 
       # Upload the PR review content as an artifact for the second workflow
       - name: Upload PR review artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pr_message
           path: artifacts/
